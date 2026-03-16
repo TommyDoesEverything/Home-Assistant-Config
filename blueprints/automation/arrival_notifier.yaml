@@ -96,9 +96,10 @@ action:
               {% endif %}
         sequence:
           - action: light.turn_off
-            target: !input target_light
+            target:
+              entity_id: "{{ light_entity }}"
             data:
               transition: 5
           - action: input_boolean.turn_off
             target:
-              entity_id: !input arrival_helper
+              entity_id: "{{ helper_entity }}"
