@@ -11,10 +11,10 @@ blueprint:
           domain: person
     target_light:
       name: Light
+      description: The light to turn on.
       selector:
         entity:
           domain: light
-          description: The light to turn on.
     arrival_color:
       name: Arrival Color
       description: The color the light should turn when the tracked person arrives.
@@ -74,13 +74,18 @@ action:
             state: "on"
           - condition: template
             value_template: >
+              {# Grab the current color and the color defined in the blueprint #}
               {% set current = state_attr(!input target_light, 'rgb_color') %}
               {% set chosen = !input arrival_color %}
               {% set tol = !input sensitivity %}
+              
+              {# Verify the light is actually reporting RGB data #}
               {% if current is not none and current | length == 3 %}
                 {% set r_diff = (current[0] - chosen[0]) | abs %}
                 {% set g_diff = (current[1] - chosen[1]) | abs %}
                 {% set b_diff = (current[2] - chosen[2]) | abs %}
+                
+                {# Triple-check: all channels must be within the tolerance #}
                 {{ r_diff < tol and g_diff < tol and b_diff < tol }}
               {% else %}
                 false
