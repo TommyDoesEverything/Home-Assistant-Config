@@ -18,8 +18,11 @@ blueprint:
             domain: light
     arrival_color:
       name: Arrival Color
-      description: The color the light should turn when the tracked person arrives.
-      default: [0, 110, 255]
+      description: >
+        PICKING TIP: Set your light to the color you want in the dashboard FIRST. 
+        Then, check the 'rgb_color' attribute in Developer Tools > States. 
+        Enter those exact numbers here for 100% reliability.
+      default: [62, 109, 255]
       selector:
         color_rgb: {}
     arrival_helper:
@@ -80,17 +83,12 @@ action:
             state: "on"
           - condition: template
             value_template: >
-              {# Use the cleaned-up entity string from variables #}
               {% set current = state_attr(light_entity, 'rgb_color') %}
               {% set chosen = arrival_color_var %}
               {% set tol = sensitivity_var %}
-
               {% if current is not none and current | length == 3 %}
-                {% set r_diff = (current[0] - chosen[0]) | abs %}
-                {% set g_diff = (current[1] - chosen[1]) | abs %}
-                {% set b_diff = (current[2] - chosen[2]) | abs %}
-                
-                {{ r_diff < tol and g_diff < tol and b_diff < tol }}
+                {% set distance = ((current[0]-chosen[0])**2 + (current[1]-chosen[1])**2 + (current[2]-chosen[2])**2)**0.5 %}
+                {{ distance < tol }}
               {% else %}
                 false
               {% endif %}
