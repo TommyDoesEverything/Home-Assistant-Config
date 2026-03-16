@@ -1,10 +1,11 @@
 blueprint:
-  name: "Arrival Notifier with Short-Stay Cleanup (Precision Edition)"
+  name: "Arrival Notifier with Short-Stay Cleanup"
   description: "Turns a light a specific color on arrival. If you leave while it's still that color, it turns off."
   domain: automation
   input:
     target_person:
       name: Person
+      description: The person to track.
       selector:
         entity:
           domain: person
@@ -13,18 +14,21 @@ blueprint:
       selector:
         entity:
           domain: light
+          description: The light to turn on.
     arrival_color:
       name: Arrival Color
+      description: The color the light should turn when the tracked person arrives.
       default: [0, 110, 255]
       selector:
         color_rgb: {}
     arrival_helper:
       name: Arrival Helper
+      description: A Toggle (Input Boolean) to track this specific person's arrival state.
       selector:
         entity:
           domain: input_boolean
     sensitivity:
-      name: Color Matching Tolerance
+      name: Color Matching Sensitivity
       description: "Maximum allowed difference per channel (R, G, and B). 10-15 is recommended for high precision."
       default: 10
       selector:
