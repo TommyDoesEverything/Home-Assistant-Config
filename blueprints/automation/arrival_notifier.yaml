@@ -53,6 +53,11 @@ trigger:
     id: "leaving"
 
 action:
+  # We define variables here so the Template below can see them
+  - variables:
+      target_light_input: !input target_light
+      arrival_color_input: !input arrival_color
+      sensitivity_input: !input sensitivity
   - choose:
       - conditions:
           - condition: trigger
@@ -74,14 +79,13 @@ action:
             state: "on"
           - condition: template
             value_template: >
-              {# We pull the entity_id from the target input to find the actual bulb #}
-              {% set light_entity = (!input target_light).entity_id %}
+              {# We pull the ID from the variable defined above #}
+              {% set light_entity = target_light_input.entity_id %}
               {% set current = state_attr(light_entity, 'rgb_color') %}
-              {% set chosen = !input arrival_color %}
-              {% set tol = !input sensitivity %}
+              {% set chosen = arrival_color_input %}
+              {% set tol = sensitivity_input %}
 
               {% if current is not none and current | length == 3 %}
-                {# New Logic: Every channel must be within the sensitivity limit #}
                 {% set r_diff = (current[0] - chosen[0]) | abs %}
                 {% set g_diff = (current[1] - chosen[1]) | abs %}
                 {% set b_diff = (current[2] - chosen[2]) | abs %}
