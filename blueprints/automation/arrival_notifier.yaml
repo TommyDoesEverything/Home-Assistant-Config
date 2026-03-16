@@ -1,41 +1,36 @@
 blueprint:
-  name: "Arrival Notifier with Short-Stay Cleanup"
+  name: "Arrival Notifier with Short-Stay Cleanup (Precision Edition)"
   description: "Turns a light a specific color on arrival. If you leave while it's still that color, it turns off."
   domain: automation
   input:
     target_person:
       name: Person
-      description: The resident to track.
       selector:
         entity:
           domain: person
     target_light:
       name: Light
-      description: The light to turn on.
       selector:
-        target:
-          entity:
-            domain: light
+        entity:
+          domain: light
     arrival_color:
       name: Arrival Color
-      description: The color the light should turn when you arrive.
       default: [0, 110, 255]
       selector:
         color_rgb: {}
     arrival_helper:
       name: Arrival Helper
-      description: A Toggle (Input Boolean) to track this specific person's arrival state.
       selector:
         entity:
           domain: input_boolean
     sensitivity:
-      name: Color Matching Sensitivity
-      description: "How 'fuzzy' the color check is. 30 is a good balance for most bulbs."
-      default: 30
+      name: Color Matching Tolerance
+      description: "Maximum allowed difference per channel (R, G, and B). 10-15 is recommended for high precision."
+      default: 10
       selector:
         number:
-          min: 5
-          max: 100
+          min: 1
+          max: 50
           mode: slider
 
 mode: restart
@@ -59,7 +54,8 @@ action:
             id: "arriving"
         sequence:
           - action: light.turn_on
-            target: !input target_light
+            target:
+              entity_id: !input target_light
             data:
               brightness_pct: 100
               rgb_color: !input arrival_color
@@ -74,20 +70,21 @@ action:
             state: "on"
           - condition: template
             value_template: >
-              {# Get the current bulb color and the color chosen in the blueprint #}
-              {% set light_id = (state_attr(trigger.entity_id, 'entity_id')) %}
-              {% set target = state_attr((!input target_light).entity_id, 'rgb_color') %}
+              {% set current = state_attr(!input target_light, 'rgb_color') %}
               {% set chosen = !input arrival_color %}
-              {% if target is not none %}
-                {# Calculate the total difference between R, G, and B channels #}
-                {% set diff = (target[0]-chosen[0])|abs + (target[1]-chosen[1])|abs + (target[2]-chosen[2])|abs %}
-                {{ diff < (!input sensitivity) }}
+              {% set tol = !input sensitivity %}
+              {% if current is not none and current | length == 3 %}
+                {% set r_diff = (current[0] - chosen[0]) | abs %}
+                {% set g_diff = (current[1] - chosen[1]) | abs %}
+                {% set b_diff = (current[2] - chosen[2]) | abs %}
+                {{ r_diff < tol and g_diff < tol and b_diff < tol }}
               {% else %}
                 false
               {% endif %}
         sequence:
           - action: light.turn_off
-            target: !input target_light
+            target:
+              entity_id: !input target_light
             data:
               transition: 5
           - action: input_boolean.turn_off
