@@ -54,11 +54,11 @@ trigger:
 
 action:
   - variables:
-      # This is the fix: extract the string ID from the target dictionary immediately
       target_light_var: !input target_light
       light_entity: "{{ target_light_var.entity_id }}"
       arrival_color_var: !input arrival_color
       sensitivity_var: !input sensitivity
+      helper_entity: !input arrival_helper
   - choose:
       - conditions:
           - condition: trigger
