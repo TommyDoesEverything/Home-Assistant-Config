@@ -53,11 +53,12 @@ trigger:
     id: "leaving"
 
 action:
-  # We define variables here so the Template below can see them
   - variables:
-      target_light_input: !input target_light
-      arrival_color_input: !input arrival_color
-      sensitivity_input: !input sensitivity
+      # This is the fix: extract the string ID from the target dictionary immediately
+      target_light_var: !input target_light
+      light_entity: "{{ target_light_var.entity_id }}"
+      arrival_color_var: !input arrival_color
+      sensitivity_var: !input sensitivity
   - choose:
       - conditions:
           - condition: trigger
@@ -79,11 +80,10 @@ action:
             state: "on"
           - condition: template
             value_template: >
-              {# We pull the ID from the variable defined above #}
-              {% set light_entity = target_light_input.entity_id %}
+              {# Use the cleaned-up entity string from variables #}
               {% set current = state_attr(light_entity, 'rgb_color') %}
-              {% set chosen = arrival_color_input %}
-              {% set tol = sensitivity_input %}
+              {% set chosen = arrival_color_var %}
+              {% set tol = sensitivity_var %}
 
               {% if current is not none and current | length == 3 %}
                 {% set r_diff = (current[0] - chosen[0]) | abs %}
